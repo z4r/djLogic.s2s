@@ -13,4 +13,3 @@ def publish(request, user, partner_id, click_id):
         task_id = PublishTask.delay(user, s2s_data, click_id)
         logger.info('[%s] NOTIFICATION QUEUED %s' % (user, task_id))
         return HttpResponse(task_id,status=202)
-
