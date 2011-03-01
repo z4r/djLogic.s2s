@@ -1,5 +1,4 @@
 import logging
-from django.conf import settings
 import os.path
 import json
 from urlparse import urlsplit
@@ -25,7 +24,9 @@ class S2SFactory(object):
         return cls.logger
     get_logger = classmethod(get_logger)
 
-def get_data(partner_id):
+def get_data(partner_id, settings, logger=None):
+    if not logger:
+        logger = S2SFactory.get_logger()
     (country, campain, flight, creativity) = partner_id.split("_")
     input_data = {
         'country'    : country,
@@ -37,19 +38,24 @@ def get_data(partner_id):
                       settings.CAMPAIN_TEMPLATE_FLT,
                       settings.CAMPAIN_TEMPLATE_CMP, ):
         file_name = template % input_data
-        if os.path.exists.(file_name) and os.path.isfile(file_name):
+        logger.debug("%s is a file: %s" % (file_name, os.path.isfile(file_name)))
+        if os.path.isfile(file_name):
             fh = open(file_name, 'r')
             content = fh.read()
+            fh.close()
             try:
                 raw_data = json.loads(content)
                 url = raw_data['url']
                 tt  = raw_data['track_type']
-            except KeyValue:
+                return rd2d(tt, url)
+            except KeyValue as e:
+                logger.error("Bad Format: %s" % file_name)
                 return None
+    logger.error('File NOT found for: %s:' % partner_id)
     return None
 
 def rd2d(track_type, url):
-    if track_type = 1:
+    if track_type == 1:
         o = urlsplit(url)
         return S2SData(
             data   = o.query,
